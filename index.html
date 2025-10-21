@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coolify Test App</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .container {
+            text-align: center;
+            background: white;
+            padding: 3rem;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 600px;
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 1rem;
+            font-size: 2.5rem;
+        }
+        .status {
+            display: inline-block;
+            background: #10b981;
+            color: white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+            margin: 1rem 0;
+            font-weight: bold;
+        }
+        .info {
+            background: #f3f4f6;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-top: 2rem;
+            text-align: left;
+        }
+        .info h3 {
+            margin-top: 0;
+            color: #667eea;
+        }
+        .check-item {
+            display: flex;
+            align-items: center;
+            margin: 0.5rem 0;
+        }
+        .check-item::before {
+            content: "✓";
+            color: #10b981;
+            font-weight: bold;
+            margin-right: 0.5rem;
+            font-size: 1.2rem;
+        }
+        code {
+            background: #e5e7eb;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Wildcard Domain Test</h1>
+        <div class="status">✓ Successfully Deployed!</div>
+
+        <p>This test app confirms that your Coolify wildcard domain setup is working correctly.</p>
+
+        <div class="info">
+            <h3>What's Working:</h3>
+            <div class="check-item">Cloudflare Tunnel routing</div>
+            <div class="check-item">Wildcard DNS (*.aiwrk.org)</div>
+            <div class="check-item">Traefik reverse proxy</div>
+            <div class="check-item">Automatic SSL certificates</div>
+            <div class="check-item">Docker container deployment</div>
+        </div>
+
+        <div class="info" style="margin-top: 1rem;">
+            <h3>Your Setup:</h3>
+            <p><strong>Domain:</strong> <code id="hostname"></code></p>
+            <p><strong>Protocol:</strong> <code id="protocol"></code></p>
+            <p><strong>Deployed via:</strong> Coolify + UTM + Ubuntu</p>
+        </div>
+
+        <p style="margin-top: 2rem; color: #6b7280;">
+            You can now deploy any app with custom subdomains on <code>*.aiwrk.org</code>
+        </p>
+    </div>
+
+    <script>
+        document.getElementById('hostname').textContent = window.location.hostname;
+        document.getElementById('protocol').textContent = window.location.protocol.replace(':', '').toUpperCase();
+    </script>
+</body>
+</html>
