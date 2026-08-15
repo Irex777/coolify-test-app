@@ -65,6 +65,15 @@ const server=http.createServer((req,res)=>{
 
   if(req.method==='GET'){
     if(u.pathname==='/healthz')return json(200,{ok:true,game:'VOID KEEP'});
+    if(u.pathname==='/debug'){
+      let m='';
+      try{
+        const lines=fs.readFileSync('/proc/self/mountinfo','utf8').split('\n').filter(l=>l.split('\t')[1]==='/data');
+        m=lines.length?lines.map(l=>{const p=l.split('\t');return p[4]||p[3];}).join(' | '):'no /data mount (overlay)';
+      }catch(e){m='err:'+e.message;}
+      let st=null;try{st=fs.statSync(FILE);}catch(e){}
+      return json(200,{dataDir:DATA_DIR,fileExists:!!st,size:st?st.size:null,mount:m,mem:process.memoryUsage().heapUsed});
+    }
     if(u.pathname==='/'){
       let html;try{html=fs.readFileSync(path.join(__dirname,'public','index.html'));}catch(e){return json(500,{error:'game missing'});}
       res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-cache'});
