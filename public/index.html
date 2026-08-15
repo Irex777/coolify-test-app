@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>VOID KEEP — space-medieval raycast FPS</title>
 <style>
 html,body{margin:0;height:100%;background:#060509;overflow:hidden}
@@ -63,6 +63,16 @@ body{display:flex;align-items:center;justify-content:center;font-family:"Courier
 @keyframes blink{50%{opacity:.2}}
 #statspanel{position:absolute;top:14px;left:50%;transform:translateX(-50%);display:none;background:rgba(10,8,5,.9);border:1px solid #4a4132;padding:12px 18px;font-size:11px;letter-spacing:2px;color:#c9b26a;line-height:1.9;min-width:300px;z-index:4}
 #ctlpanel{position:absolute;bottom:90px;left:14px;display:none;background:rgba(10,8,5,.88);border:1px solid #4a4132;padding:10px 14px;font-size:10px;letter-spacing:1px;color:#93865f;line-height:1.8;z-index:4}
+html,body{touch-action:none;overscroll-behavior:none;-webkit-tap-highlight-color:transparent}
+#game{touch-action:none}
+#joy{position:absolute;width:118px;height:118px;margin:-59px 0 0 -59px;border:2px solid rgba(216,180,90,.35);border-radius:50%;display:none;pointer-events:none;z-index:6;background:rgba(20,15,8,.18)}
+#jknob{position:absolute;left:50%;top:50%;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;background:rgba(255,210,77,.30);border:1px solid rgba(255,210,77,.5)}
+#tbtns{position:absolute;right:10px;bottom:12px;display:none;gap:10px;grid-template-columns:repeat(2,54px);z-index:6;pointer-events:none}
+.tbtn{pointer-events:auto;width:54px;height:54px;border-radius:50%;border:1px solid rgba(216,180,90,.5);background:rgba(12,9,5,.6);color:#d8cbaa;font-family:inherit;font-size:9px;letter-spacing:1px;display:flex;align-items:center;justify-content:center;touch-action:none;user-select:none}
+.tbtn:active{background:rgba(255,210,77,.25)}
+#tpause{position:absolute;right:10px;top:56px;display:none;width:40px;height:40px;border-radius:50%;border:1px solid rgba(216,180,90,.5);background:rgba(12,9,5,.6);color:#d8cbaa;font-family:inherit;font-size:12px;z-index:6;touch-action:none;align-items:center;justify-content:center}
+#tmenu{position:absolute;right:10px;bottom:14px;display:none;padding:8px 16px;border:1px solid rgba(216,180,90,.5);background:rgba(12,9,5,.7);color:#d8cbaa;font-family:inherit;font-size:11px;letter-spacing:3px;z-index:7;touch-action:none}
+#rothint{position:absolute;top:0;left:0;width:100%;text-align:center;font-size:9px;letter-spacing:3px;color:#8a7c58;padding:5px 0;background:rgba(8,6,3,.7);z-index:7;display:none;pointer-events:none}
 </style>
 <link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' fill='%23060509'/><path d='M6 2h4v4h4v4h-4v4H6v-4H2V6h4z' fill='%23d8b45a'/></svg>"
 </head>
@@ -93,6 +103,16 @@ body{display:flex;align-items:center;justify-content:center;font-family:"Courier
     <div id="ctlpanel"></div>
   </div>
   <div id="overlay"></div>
+  <div id="joy"><div id="jknob"></div></div>
+  <div id="tbtns">
+    <div class="tbtn" id="bNade">NADE</div>
+    <div class="tbtn" id="bRoll">ROLL</div>
+    <div class="tbtn" id="bReload">RELOAD</div>
+    <div class="tbtn" id="bNext">NEXT</div>
+  </div>
+  <div id="tpause">II</div>
+  <div id="tmenu">MENU</div>
+  <div id="rothint">ROTATE DEVICE FOR FULLSCREEN BATTLE</div>
 </div>
 <script>
 'use strict';
@@ -113,6 +133,9 @@ const boxEl=$('box'),ovEl=$('overlay'),statsEl=$('stats'),msgEl=$('msg'),hintEl=
       bossEl=$('bossbar'),bfillEl=$('bfill'),bossNameEl=document.querySelector('#bossbar .lbl'),sfillEl=$('sfill'),nadesEl=$('nades'),
       buffsEl=$('buffs'),statspanEl=$('statspanel'),ctlpanelEl=$('ctlpanel'),hudEl=$('hud');
 mm.imageSmoothingEnabled=false;
+const IS_TOUCH=matchMedia('(pointer:coarse)').matches||'ontouchstart' in window||navigator.maxTouchPoints>0;
+const joyEl=$('joy'),jknobEl=$('jknob'),tbtnsEl=$('tbtns'),tpauseEl=$('tpause'),tmenuEl=$('tmenu'),rothintEl=$('rothint');
+let lastTouchT=0,lookCount=0;
 
 /* render scale (perf) */
 function setScale(s){
@@ -132,6 +155,7 @@ function fit(){
   const ar=VW/VH;let w=innerWidth,h=innerHeight;
   if(w/h>ar)w=Math.floor(h*ar);else h=Math.floor(w/ar);
   boxEl.style.width=w+'px';boxEl.style.height=h+'px';
+  rothintEl.style.display=IS_TOUCH&&innerHeight>innerWidth?'block':'none';
 }
 addEventListener('resize',fit);fit();
 
@@ -701,7 +725,7 @@ function startGame(){
   for(const pw of gm.pows)pickups.push({x:pw.x,y:pw.y,kind:pw.kind,t:rand(0,6)});
   lights=gm.lights.map(l=>({x:l.x,y:l.y,ph:rand(0,6)}));
   G.score=0;G.kills=0;G.wave=0;G.stats={shots:0,hits:0,dmg:0,time:0,kp:{}};
-  G.state='playing';ovEl.style.display='none';ovEl.className='';hudEl.style.display='';
+  G.state='playing';ovEl.style.display='none';ovEl.className='';hudEl.style.display='';syncTouchUI();
   startWave(1);
 }
 function newMapForWave(){
@@ -1679,18 +1703,25 @@ async function submitScore(){
 }
 
 /* ============ overlays ============ */
+function syncTouchUI(st){
+  st=st||G.state;
+  tbtnsEl.style.display=IS_TOUCH&&st!=='dead'?'grid':'none';
+  tpauseEl.style.display=IS_TOUCH&&(st==='playing'||st==='pause')?'flex':'none';
+  tmenuEl.style.display=IS_TOUCH&&st==='dead'?'block':'none';
+}
 function showOv(state){
   G.state=state;
   ovEl.style.display='flex';
   ovEl.className=state==='menu'?'solid':'';
   hudEl.style.display=state==='menu'?'none':'';
+  syncTouchUI(state);
   if(state==='menu'){
     ovEl.innerHTML='<h1>VOID KEEP</h1><h2 class="sub">SPACE-MEDIEVAL RAYCAST FPS</h2>'+
       '<input id="pname" maxlength="16" placeholder="ENTER YOUR NAME" spellcheck="false" autocomplete="off" value="'+Arcade.esc(Arcade.name)+'"'+(Arcade.name?'':' class="need"')+ '>'+
-      '<div class="blink">'+(Arcade.name?'CLICK TO START':'ENTER YOUR NAME, KING')+'</div>'+
+      '<div class="blink">'+(Arcade.name?(IS_TOUCH?'TAP TO START':'CLICK TO START'):'ENTER YOUR NAME, KING')+'</div>'+
       '<div class="lb"><h3>TOP KINGS</h3><div class="lbwait">SCROLLING THE HALL OF NAMES…</div></div>';
     const nm=ovEl.querySelector('#pname');
-    nm.addEventListener('input',()=>{Arcade.setName(nm.value);nm.classList.toggle('need',!Arcade.name);const bl=ovEl.querySelector('.blink');if(bl)bl.textContent=Arcade.name?'CLICK TO START':'ENTER YOUR NAME, KING';});
+    nm.addEventListener('input',()=>{Arcade.setName(nm.value);nm.classList.toggle('need',!Arcade.name);const bl=ovEl.querySelector('.blink');if(bl)bl.textContent=Arcade.name?(IS_TOUCH?'TAP TO START':'CLICK TO START'):'ENTER YOUR NAME, KING';});
     nm.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();tryStart();}});
     loadBoard();
   }else if(state==='dead'){
@@ -1700,17 +1731,18 @@ function showOv(state){
       '<h2>SCORE '+G.score+'</h2>'+
       (rec?'<div class="gold">NEW RECORD</div>':'<div class="gold">HIGH SCORE '+G.best+'</div>')+
       '<div class="lb"><h3>HALL OF NAMES</h3><div class="lbwait">CARVING YOUR DEEDS…</div></div>'+
-      '<div class="blink">ENTER — NEW MAP &nbsp;·&nbsp; Q — MENU</div>';
+      '<div class="blink">'+(IS_TOUCH?'TAP — NEW MAP':'ENTER — NEW MAP &nbsp;·&nbsp; Q — MENU')+'</div>';
     submitScore();
   }else if(state==='pause'){
     ovEl.innerHTML='<h1>PAUSED</h1>'+
       '<div class="tag">WAVE '+G.wave+' · SCORE '+G.score+'</div>'+
-      '<div class="ctl">T — sensitivity ('+G.sens.toFixed(1)+'x)<br>X — render scale ('+(W/VW)+'x)<br>R — restart · ESC — resume</div>'+
-      '<div class="blink">CLICK TO RESUME</div>';
+      (IS_TOUCH?'':'<div class="ctl">T — sensitivity ('+G.sens.toFixed(1)+'x)<br>X — render scale ('+(W/VW)+'x)<br>R — restart · ESC — resume</div>')+
+      '<div class="blink">'+(IS_TOUCH?'TAP TO RESUME':'CLICK TO RESUME')+'</div>';
   }
   if(document.exitPointerLock)document.exitPointerLock();
 }
 function requestLock(){
+  if(IS_TOUCH)return;
   try{
     const p=cv.requestPointerLock&&cv.requestPointerLock();
     if(p&&p.catch)p.catch(()=>{if(G.state==='playing')pause();});
@@ -1725,7 +1757,7 @@ function tryStart(){
   }
   startGame();requestLock();
 }
-function resume(){G.state='playing';ovEl.style.display='none';hudEl.style.display='';requestLock();}
+function resume(){G.state='playing';ovEl.style.display='none';hudEl.style.display='';syncTouchUI();requestLock();}
 function pause(){if(G.state!=='playing')return;showOv('pause');}
 
 /* ============ input ============ */
@@ -1758,13 +1790,14 @@ addEventListener('keydown',e=>{
   else if(k==='escape')pause();
 });
 addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false;});
-addEventListener('blur',()=>{for(const k in keys)keys[k]=false;mouseLeft=false;mouseRight=false;});
+addEventListener('blur',()=>{for(const k in keys)keys[k]=false;mouseLeft=false;mouseRight=false;lookCount=0;});
 addEventListener('mousemove',e=>{
   if(document.pointerLockElement!==cv)return;
   P.a+=e.movementX*0.0022*G.sens;
   P.pitch=clamp(P.pitch-e.movementY*0.4,-40,40);
 });
 cv.addEventListener('mousedown',e=>{
+  if(performance.now()-lastTouchT<700)return;
   ensureAudio();
   if(G.state==='menu'||G.state==='dead'){tryStart();return;}
   if(G.state==='pause'){resume();return;}
@@ -1777,8 +1810,69 @@ addEventListener('mouseup',e=>{
   if(e.button===2)mouseRight=false;
 });
 addEventListener('contextmenu',e=>e.preventDefault());
+/* ============ touch controls ============ */
+const tTouches=new Map();
+if(IS_TOUCH){
+  const R=42,DEAD=12;
+  const boxR=()=>boxEl.getBoundingClientRect();
+  cv.addEventListener('touchstart',e=>{
+    e.preventDefault();lastTouchT=performance.now();ensureAudio();
+    const r=boxR();
+    for(const t of e.changedTouches){
+      const x=t.clientX-r.left,y=t.clientY-r.top;
+      if(G.state==='menu'||G.state==='dead'){tryStart();}
+      else if(G.state==='pause'){resume();}
+      if(G.state!=='playing')continue;
+      if(x<r.width*0.45){
+        tTouches.set(t.identifier,{mode:'joy',sx:x,sy:y});
+        joyEl.style.display='block';joyEl.style.left=x+'px';joyEl.style.top=y+'px';
+        jknobEl.style.transform='translate(0,0)';
+      }else{
+        tTouches.set(t.identifier,{mode:'look',lx:t.clientX,ly:t.clientY});
+        lookCount++;mouseLeft=true;
+      }
+    }
+  },{passive:false});
+  cv.addEventListener('touchmove',e=>{
+    e.preventDefault();
+    for(const t of e.changedTouches){
+      const s=tTouches.get(t.identifier);
+      if(!s)continue;
+      if(s.mode==='joy'){
+        const r=boxR();
+        let dx=t.clientX-r.left-s.sx,dy=t.clientY-r.top-s.sy;
+        const d=Math.hypot(dx,dy);
+        if(d>R){dx*=R/d;dy*=R/d;}
+        jknobEl.style.transform='translate('+dx+'px,'+dy+'px)';
+        keys['w']=dy<-DEAD;keys['s']=dy>DEAD;keys['a']=dx<-DEAD;keys['d']=dx>DEAD;
+      }else{
+        P.a+=(t.clientX-s.lx)*0.0022*G.sens;
+        P.pitch=clamp(P.pitch-(t.clientY-s.ly)*0.25,-40,40);
+        s.lx=t.clientX;s.ly=t.clientY;
+        mouseLeft=true;
+      }
+    }
+  },{passive:false});
+  const endTouches=e=>{
+    for(const t of e.changedTouches){
+      const s=tTouches.get(t.identifier);
+      if(!s)continue;
+      if(s.mode==='joy'){keys['w']=keys['s']=keys['a']=keys['d']=false;joyEl.style.display='none';}
+      else{lookCount=Math.max(0,lookCount-1);if(!lookCount)mouseLeft=false;}
+      tTouches.delete(t.identifier);
+    }
+  };
+  cv.addEventListener('touchend',endTouches);
+  cv.addEventListener('touchcancel',endTouches);
+  const tbtn=(id,fn)=>{const el=$(id);el.addEventListener('touchstart',ev=>{ev.preventDefault();ev.stopPropagation();lastTouchT=performance.now();ensureAudio();if(G.state!=='playing')return;fn();},{passive:false});};
+  tbtn('bNade',throwNade);tbtn('bRoll',doDodge);tbtn('bReload',startReload);
+  tbtn('bNext',()=>{switchWeapon((P.cur+1)%P.weapons.length);});
+  tpauseEl.addEventListener('touchstart',ev=>{ev.preventDefault();lastTouchT=performance.now();ensureAudio();
+    if(G.state==='playing')pause();else if(G.state==='pause')resume();},{passive:false});
+  tmenuEl.addEventListener('touchstart',ev=>{ev.preventDefault();lastTouchT=performance.now();showOv('menu');},{passive:false});
+}
 document.addEventListener('pointerlockchange',()=>{
-  if(document.pointerLockElement!==cv&&G.state==='playing')pause();
+  if(!IS_TOUCH&&document.pointerLockElement!==cv&&G.state==='playing')pause();
 });
 document.addEventListener('visibilitychange',()=>{
   if(document.hidden&&G.state==='playing')pause();
@@ -1820,7 +1914,7 @@ globalThis.__t={
   keys,setFiring(v){mouseLeft=v;},
   startGame,startWave,genMap,isWall,spawnEnemy,hurtPlayer,update,render,
   shoot,explode,doMelee,throwNade,switchWeapon,startReload,setScale,castRay,screenProj,
-  WEAPONS,ETYPE,
+  WEAPONS,ETYPE,IS_TOUCH,
 };
 </script>
 </body>
