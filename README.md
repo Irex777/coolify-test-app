@@ -19,3 +19,11 @@ Play with friends, enter a name, climb the server-side leaderboard.
 
 ## Docker
     docker build -t voidkeep . && docker run -p 3000:3000 -v voidkeep_data:/data voidkeep
+
+## Auto-deploy
+Pushes to branch `voidkeep` auto-deploy to https://voidkeep.aiwrk.org:
+- A watcher on the dev machine (`~/voidkeep-deploy`) detects new commits and
+  sends a signed push event to Coolify's manual GitHub webhook.
+- Optional server-side upgrade: add a GitHub repo webhook (event: push) at
+  `https://coolify.aiwrk.org/webhooks/source/github/events/manual` using the
+  app's `manual_webhook_secret_github` as the webhook secret.
