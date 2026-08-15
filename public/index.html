@@ -1490,6 +1490,7 @@ function render(now){
   if(!P)return;
   calcView();
   const sx=(Math.random()*2-1)*G.shake,sy=(Math.random()*2-1)*G.shake;
+  ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,W,H);
   ctx.save();
   ctx.translate(sx,sy);
   drawCeil();

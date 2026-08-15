@@ -14,6 +14,11 @@ try{
     if(Array.isArray(j))scores=j.filter(e=>e&&typeof e==='object'&&typeof e.name==='string');
   }
 }catch(e){console.error('load scores failed:',e.message);scores=[];}
+if(process.env.VK_WIPE==='1'){
+  scores=[];
+  try{fs.mkdirSync(DATA_DIR,{recursive:true});fs.rmSync(FILE,{force:true});console.log('VK_WIPE=1 — score storage wiped');}
+  catch(e){console.error('wipe failed:',e.message);}
+}
 
 let saveT=null;
 function saveNow(){
