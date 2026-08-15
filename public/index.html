@@ -36,23 +36,25 @@ body{display:flex;align-items:center;justify-content:center;font-family:"Courier
 #buffs{position:absolute;left:14px;bottom:74px;font-size:9px;letter-spacing:2px;color:#ffd24d}
 #ammo{position:absolute;right:14px;bottom:34px;font-size:22px;letter-spacing:3px;text-shadow:0 0 10px rgba(255,190,80,.4)}
 #nades{position:absolute;right:14px;bottom:14px;font-size:11px;letter-spacing:2px;color:#ff8a3d}
-#overlay{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(8,6,3,.8);text-align:center;z-index:5;pointer-events:none}
-#overlay h1{margin:0;font-size:46px;letter-spacing:12px;color:#ffd98a;text-shadow:0 0 24px rgba(255,170,50,.6)}
+#overlay{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:rgba(8,6,3,.8);text-align:center;z-index:5;pointer-events:none}
+#overlay.solid{background:#070503}
+#overlay h1{margin:0;font-size:46px;letter-spacing:12px;color:#ffd98a;text-shadow:0 0 22px rgba(255,170,50,.45)}
 #overlay h1.red{color:#ff5468;text-shadow:0 0 24px rgba(255,60,90,.8)}
 #overlay h2{margin:0;font-size:20px;letter-spacing:8px;color:#c9b26a}
+#overlay h2.sub{font-size:11px;letter-spacing:6px;color:#8a7c58}
 #overlay .tag{margin:0;font-size:12px;letter-spacing:5px;color:#8a7c58;text-transform:uppercase}
 #overlay .ctl{font-size:12px;letter-spacing:2px;color:#93865f;line-height:1.9}
 #overlay .gold{color:#ffd24d;font-size:11px;letter-spacing:2px}
 #overlay .blink{font-size:14px;letter-spacing:4px;color:#fff0d0;animation:blink 1.2s infinite}
-#overlay input{pointer-events:auto;width:240px;padding:8px 12px;background:rgba(20,15,8,.92);border:1px solid #6a5a33;color:#ffe9b0;font-family:inherit;font-size:13px;letter-spacing:3px;text-align:center;text-transform:uppercase;outline:none}
-#overlay input:focus{border-color:#ffd24d;box-shadow:0 0 14px rgba(255,210,77,.3)}
+#overlay input{pointer-events:auto;width:240px;padding:6px 4px;background:transparent;border:none;border-bottom:1px solid #6a5a33;color:#ffe9b0;font-family:inherit;font-size:14px;letter-spacing:3px;text-align:center;text-transform:uppercase;outline:none}
+#overlay input:focus{border-bottom-color:#ffd24d}
 #overlay input::placeholder{color:#7a6c48}
 #overlay input.need{border-color:#b43a3a;animation:needPulse 1.3s ease-in-out infinite}
 @keyframes needPulse{50%{box-shadow:0 0 22px rgba(220,60,60,.5);border-color:#e05050}}
-#overlay .lb{pointer-events:auto;width:min(420px,86vw);background:rgba(12,9,5,.78);border:1px solid #4a3f26;padding:12px 18px;box-shadow:0 0 34px rgba(0,0,0,.65)}
-#overlay .lb h3{margin:0 0 8px;font-size:12px;letter-spacing:6px;color:#ffd24d;font-weight:normal}
+#overlay .lb{pointer-events:auto;width:min(400px,86vw);background:none;border:none;box-shadow:none;padding:0;margin-top:26px}
+#overlay .lb h3{margin:0 0 6px;font-size:10px;letter-spacing:5px;color:#8a7c58;font-weight:normal}
 #overlay .lb table{border-collapse:collapse;width:100%}
-#overlay .lb td{font-size:12px;letter-spacing:1px;color:#cbb87e;padding:2px 8px;border-bottom:1px solid rgba(90,75,45,.35);white-space:nowrap;text-align:left}
+#overlay .lb td{font-size:11px;letter-spacing:1px;color:#9a8c66;padding:2px 8px;border-bottom:1px solid rgba(90,75,45,.22);white-space:nowrap;text-align:left}
 #overlay .lb td.rk{color:#8a7c58;width:28px;text-align:center}
 #overlay .lb tr:first-child td{color:#fff0d0}
 #overlay .lb tr.me td{color:#ffd24d;text-shadow:0 0 8px rgba(255,210,77,.5)}
@@ -109,7 +111,7 @@ const boxEl=$('box'),ovEl=$('overlay'),statsEl=$('stats'),msgEl=$('msg'),hintEl=
       mmCv=$('minimap'),mm=mmCv.getContext('2d'),
       feedEl=$('feed'),mapnameEl=$('mapname'),wfillEl=$('wfill'),wnumEl=$('wnum'),
       bossEl=$('bossbar'),bfillEl=$('bfill'),bossNameEl=document.querySelector('#bossbar .lbl'),sfillEl=$('sfill'),nadesEl=$('nades'),
-      buffsEl=$('buffs'),statspanEl=$('statspanel'),ctlpanelEl=$('ctlpanel');
+      buffsEl=$('buffs'),statspanEl=$('statspanel'),ctlpanelEl=$('ctlpanel'),hudEl=$('hud');
 mm.imageSmoothingEnabled=false;
 
 /* render scale (perf) */
@@ -699,7 +701,7 @@ function startGame(){
   for(const pw of gm.pows)pickups.push({x:pw.x,y:pw.y,kind:pw.kind,t:rand(0,6)});
   lights=gm.lights.map(l=>({x:l.x,y:l.y,ph:rand(0,6)}));
   G.score=0;G.kills=0;G.wave=0;G.stats={shots:0,hits:0,dmg:0,time:0,kp:{}};
-  G.state='playing';ovEl.style.display='none';
+  G.state='playing';ovEl.style.display='none';ovEl.className='';hudEl.style.display='';
   startWave(1);
 }
 function newMapForWave(){
@@ -1651,7 +1653,7 @@ async function loadBoard(){
   if(el!==ovEl.querySelector('.lb')||G.state!=='menu')return;
   if(!b){el.innerHTML='<h3>TOP KINGS</h3><div class="lbwait">HALL OFFLINE — PLAY LOCALLY</div>';return;}
   let rows='';
-  for(let i=0;i<b.top.length;i++){
+  for(let i=0;i<Math.min(5,b.top.length);i++){
     const e=b.top[i];
     const me=(e.name||'').toLowerCase()===Arcade.name.toLowerCase()?' class="me"':'';
     rows+='<tr'+me+'><td class="rk">'+e.rank+'</td><td>'+Arcade.esc(e.name)+'</td><td>'+e.score.toLocaleString()+'</td><td>W'+e.wave+'</td><td>'+e.kills+'</td></tr>';
@@ -1683,16 +1685,13 @@ async function submitScore(){
 function showOv(state){
   G.state=state;
   ovEl.style.display='flex';
+  ovEl.className=state==='menu'?'solid':'';
+  hudEl.style.display=state==='menu'?'none':'';
   if(state==='menu'){
-    ovEl.innerHTML='<h1>VOID KEEP</h1><h2>SPACE-MEDIEVAL RAYCAST FPS</h2>'+
-      '<div class="tag">space-medieval arenas · new map each wave · boss every 5th wave</div>'+
-      (G.best>0?'<div class="gold">HIGH SCORE '+G.best+'</div>':'')+
-      '<div class="lb"><h3>TOP KINGS</h3><div class="lbwait">SCROLLING THE HALL OF NAMES…</div></div>'+
-      '<input id="pname" maxlength="16" placeholder="ENTER YOUR NAME — REQUIRED" spellcheck="false" autocomplete="off" value="'+Arcade.esc(Arcade.name)+'"'+(Arcade.name?'':' class="need"')+ '">'+
+    ovEl.innerHTML='<h1>VOID KEEP</h1><h2 class="sub">SPACE-MEDIEVAL RAYCAST FPS</h2>'+
+      '<input id="pname" maxlength="16" placeholder="ENTER YOUR NAME" spellcheck="false" autocomplete="off" value="'+Arcade.esc(Arcade.name)+'"'+(Arcade.name?'':' class="need"')+ '>'+
       '<div class="blink">'+(Arcade.name?'CLICK TO START':'ENTER YOUR NAME, KING')+'</div>'+
-      '<div class="ctl">WASD move · MOUSE aim · LMB fire · RMB scope<br>'+
-      '1-5 weapons · F melee · G grenade · SPACE roll · R reload<br>'+
-      'TAB stats · H controls · M mute · T minimap</div>';
+      '<div class="lb"><h3>TOP KINGS</h3><div class="lbwait">SCROLLING THE HALL OF NAMES…</div></div>';
     const nm=ovEl.querySelector('#pname');
     nm.addEventListener('input',()=>{Arcade.setName(nm.value);nm.classList.toggle('need',!Arcade.name);const bl=ovEl.querySelector('.blink');if(bl)bl.textContent=Arcade.name?'CLICK TO START':'ENTER YOUR NAME, KING';});
     nm.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();tryStart();}});
@@ -1729,7 +1728,7 @@ function tryStart(){
   }
   startGame();requestLock();
 }
-function resume(){G.state='playing';ovEl.style.display='none';requestLock();}
+function resume(){G.state='playing';ovEl.style.display='none';hudEl.style.display='';requestLock();}
 function pause(){if(G.state!=='playing')return;showOv('pause');}
 
 /* ============ input ============ */
