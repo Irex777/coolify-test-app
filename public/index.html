@@ -47,6 +47,8 @@ body{display:flex;align-items:center;justify-content:center;font-family:"Courier
 #overlay input{pointer-events:auto;width:240px;padding:8px 12px;background:rgba(20,15,8,.92);border:1px solid #6a5a33;color:#ffe9b0;font-family:inherit;font-size:13px;letter-spacing:3px;text-align:center;text-transform:uppercase;outline:none}
 #overlay input:focus{border-color:#ffd24d;box-shadow:0 0 14px rgba(255,210,77,.3)}
 #overlay input::placeholder{color:#7a6c48}
+#overlay input.need{border-color:#b43a3a;animation:needPulse 1.3s ease-in-out infinite}
+@keyframes needPulse{50%{box-shadow:0 0 22px rgba(220,60,60,.5);border-color:#e05050}}
 #overlay .lb{pointer-events:auto;width:min(420px,86vw);background:rgba(12,9,5,.78);border:1px solid #4a3f26;padding:12px 18px;box-shadow:0 0 34px rgba(0,0,0,.65)}
 #overlay .lb h3{margin:0 0 8px;font-size:12px;letter-spacing:6px;color:#ffd24d;font-weight:normal}
 #overlay .lb table{border-collapse:collapse;width:100%}
@@ -1686,14 +1688,14 @@ function showOv(state){
       '<div class="tag">space-medieval arenas · new map each wave · boss every 5th wave</div>'+
       (G.best>0?'<div class="gold">HIGH SCORE '+G.best+'</div>':'')+
       '<div class="lb"><h3>TOP KINGS</h3><div class="lbwait">SCROLLING THE HALL OF NAMES…</div></div>'+
-      '<input id="pname" maxlength="16" placeholder="ENTER YOUR NAME" spellcheck="false" autocomplete="off" value="'+Arcade.esc(Arcade.name)+'">'+
-      '<div class="blink">CLICK TO START</div>'+
+      '<input id="pname" maxlength="16" placeholder="ENTER YOUR NAME — REQUIRED" spellcheck="false" autocomplete="off" value="'+Arcade.esc(Arcade.name)+'"'+(Arcade.name?'':' class="need"')+ '">'+
+      '<div class="blink">'+(Arcade.name?'CLICK TO START':'ENTER YOUR NAME, KING')+'</div>'+
       '<div class="ctl">WASD move · MOUSE aim · LMB fire · RMB scope<br>'+
       '1-5 weapons · F melee · G grenade · SPACE roll · R reload<br>'+
       'TAB stats · H controls · M mute · T minimap</div>';
     const nm=ovEl.querySelector('#pname');
-    nm.addEventListener('input',()=>Arcade.setName(nm.value));
-    nm.addEventListener('keydown',e=>{if(e.key==='Enter'){startGame();requestLock();}});
+    nm.addEventListener('input',()=>{Arcade.setName(nm.value);nm.classList.toggle('need',!Arcade.name);const bl=ovEl.querySelector('.blink');if(bl)bl.textContent=Arcade.name?'CLICK TO START':'ENTER YOUR NAME, KING';});
+    nm.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();tryStart();}});
     loadBoard();
   }else if(state==='dead'){
     const rec=G.score>=G.best&&G.score>0;
@@ -1718,6 +1720,15 @@ function requestLock(){
     if(p&&p.catch)p.catch(()=>{if(G.state==='playing')pause();});
   }catch(e){if(G.state==='playing')pause();}
 }
+function tryStart(){
+  if(!Arcade.name){
+    if(G.state!=='menu')showOv('menu');
+    const nm=ovEl.querySelector('#pname');
+    if(nm){nm.classList.add('need');nm.focus();}
+    return;
+  }
+  startGame();requestLock();
+}
 function resume(){G.state='playing';ovEl.style.display='none';requestLock();}
 function pause(){if(G.state!=='playing')return;showOv('pause');}
 
@@ -1726,12 +1737,12 @@ addEventListener('keydown',e=>{
   const k=e.key.toLowerCase();
   ensureAudio();
   if(G.state==='dead'){
-    if(k==='enter'){startGame();requestLock();}
+    if(k==='enter'){tryStart();}
     else if(k==='q')showOv('menu');
     return;
   }
   if(G.state==='pause'){
-    if(k==='r'){startGame();requestLock();}
+    if(k==='r'){tryStart();}
     else if(k==='t'){G.sens=G.sens>=2?0.5:G.sens+0.5;showOv('pause');}
     else if(k==='x'){setScale(W===VW?0.5:1);showOv('pause');}
     else if(k==='escape')resume();
@@ -1759,7 +1770,7 @@ addEventListener('mousemove',e=>{
 });
 cv.addEventListener('mousedown',e=>{
   ensureAudio();
-  if(G.state==='menu'||G.state==='dead'){startGame();requestLock();return;}
+  if(G.state==='menu'||G.state==='dead'){tryStart();return;}
   if(G.state==='pause'){resume();return;}
   if(G.state!=='playing')return;
   if(e.button===0)mouseLeft=true;

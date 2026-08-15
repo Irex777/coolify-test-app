@@ -107,7 +107,8 @@ const server=http.createServer((req,res)=>{
       let j;try{j=JSON.parse(body||'{}');}catch(e){return json(400,{error:'bad json'});}
       const name=cleanName(j.name);
       const score=num(j.score,0,9999999),kills=num(j.kills,0,9999),wave=num(j.wave,1,999),time=num(j.time,0,86400);
-      if(!name||score===null||kills===null||wave===null||time===null)return json(400,{error:'bad payload'});
+      if(!name)return json(400,{error:'name required'});
+      if(score===null||kills===null||wave===null||time===null)return json(400,{error:'bad payload'});
       const e={name,score,kills,wave,time,id:crypto.randomUUID(),date:Date.now()};
       scores.push(e);
       if(scores.length>MAX_SCORES)scores=[...scores].sort(byScore).slice(0,15000);
