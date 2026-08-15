@@ -345,7 +345,7 @@ function makeGun(id){
   const steel='#454e61',steelD='#262c3a',steelL='#68758e',wood='#5c4326',woodD='#402f1b',gold='#c9a244',goldD='#7d5f22';
   const sheen=(x0,y0,x1,y1)=>{const sg=g.createLinearGradient(x0,y0,x1,y1);sg.addColorStop(0,'rgba(255,255,255,0)');sg.addColorStop(0.5,'rgba(255,255,255,0.16)');sg.addColorStop(1,'rgba(0,0,0,0)');return sg;};
   const rivets=pts=>{g.fillStyle=goldD;for(const [x,y] of pts){g.beginPath();g.arc(x,y,1.1,0,7);g.fill();}};
-  const muzzle=(x,y,r)=>{g.fillStyle=steelD;g.beginPath();g.arc(x,y,r,0,7);g.fill();g.fillStyle=acc;g.beginPath();g.arc(x,y,r*0.55,0,7);g.fill();};
+  const muzzle=(x,y,r)=>{g.fillStyle=steelD;g.beginPath();g.arc(x,y,r,0,7);g.fill();};
   if(id==='pistol'){
     g.fillStyle=woodD;g.beginPath();g.moveTo(-8,-36);g.lineTo(8,-36);g.lineTo(13,14);g.lineTo(-11,14);g.closePath();g.fill();
     g.fillStyle=wood;g.fillRect(-6,-40,10,36);
@@ -1435,9 +1435,6 @@ function renderCrosshair(){
     const cd=1-P.dodgeCd/1.5;
     ctx.strokeStyle='rgba(255,210,77,0.5)';ctx.lineWidth=2;
     ctx.beginPath();ctx.arc(cx,cy+24,6,-Math.PI/2,-Math.PI/2+cd*Math.PI*2);ctx.stroke();
-  }else{
-    ctx.fillStyle='rgba(255,210,77,0.9)';
-    ctx.beginPath();ctx.arc(cx,cy+24,2.5,0,7);ctx.fill();
   }
   ctx.globalAlpha=1;
 }
