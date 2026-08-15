@@ -1748,7 +1748,7 @@ addEventListener('keydown',e=>{
   if(k===' '){e.preventDefault();doDodge();return;}
   keys[k]=true;
   if(k==='r')startReload();
-  else if(k>='1'&&k<='5')switchWeapon(+k-1);
+  else if(k>='1'&&k<='5'){const si=P.weapons.findIndex(x=>x.wi===+k-1);if(si>=0)switchWeapon(si);}
   else if(k==='f')doMelee();
   else if(k==='g')throwNade();
   else if(k==='tab'){e.preventDefault();G.showStats=!G.showStats;}
