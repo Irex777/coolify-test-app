@@ -68,8 +68,9 @@ const server=http.createServer((req,res)=>{
     if(u.pathname==='/debug'){
       let m='';
       try{
-        const lines=fs.readFileSync('/proc/self/mountinfo','utf8').split('\n').filter(l=>l.split('\t')[1]==='/data');
-        m=lines.length?lines.map(l=>{const p=l.split('\t');return p[4]||p[3];}).join(' | '):'no /data mount (overlay)';
+        const lines=fs.readFileSync('/proc/self/mountinfo','utf8').split('\n');
+        const hit=lines.filter(l=>l.split('\t')[0].split(/\s+/)[4]==='/data');
+        m=hit.length?hit.map(l=>{const a=l.split('\t')[0].split(/\s+/);const b=l.split('\t')[1]?l.split('\t')[1].split(/\s+/):[];return a[4]+' <- '+(b[1]||b[0]||'?');}).join(' | '):'no /data mount (overlay)';
       }catch(e){m='err:'+e.message;}
       let st=null;try{st=fs.statSync(FILE);}catch(e){}
       return json(200,{dataDir:DATA_DIR,fileExists:!!st,size:st?st.size:null,mount:m,mem:process.memoryUsage().heapUsed});
