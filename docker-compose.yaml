@@ -6,5 +6,21 @@ services:
     volumes:
       - vk_scores:/data
     restart: unless-stopped
+    labels:
+      traefik.enable: "true"
+      traefik.http.middlewares.gzip.compress: "true"
+      traefik.http.middlewares.redirect-to-https.redirectscheme.scheme: https
+      traefik.http.routers.http-0-dji91vh6sg83da1yzqrqgjb8.entrypoints: http
+      traefik.http.routers.http-0-dji91vh6sg83da1yzqrqgjb8.middlewares: gzip
+      traefik.http.routers.http-0-dji91vh6sg83da1yzqrqgjb8.rule: "Host(`voidkeep.aiwrk.org`) && PathPrefix(`/`)"
+      traefik.http.routers.http-0-dji91vh6sg83da1yzqrqgjb8.service: http-0-dji91vh6sg83da1yzqrqgjb8
+      traefik.http.services.http-0-dji91vh6sg83da1yzqrqgjb8.loadbalancer.server.port: "3000"
+      caddy_0.encode: zstd gzip
+      caddy_0.handle_path.0_reverse_proxy: "{{upstreams 3000}}"
+      caddy_0.handle_path: "/*"
+      caddy_0.header: "-Server"
+      caddy_0.try_files: "{path} /index.html /index.php"
+      caddy_0: http://voidkeep.aiwrk.org
+      caddy_ingress_network: coolify
 volumes:
   vk_scores:
