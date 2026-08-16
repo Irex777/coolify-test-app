@@ -1,0 +1,10 @@
+services:
+  voidkeep:
+    build: .
+    ports:
+      - "3000"
+    volumes:
+      - vk_scores:/data
+    restart: unless-stopped
+volumes:
+  vk_scores:
